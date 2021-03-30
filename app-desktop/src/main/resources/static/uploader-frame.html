@@ -1,0 +1,207 @@
+<!--
+  ~ Copyright 2021 Google LLC
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type="application/javascript">
+        var context;
+        var file;
+        var contentDiv;
+        var statusDiv;
+        var CHUNK_SIZE = 1024 * 1024 * 8;
+        var startTime;
+        var endTime;
+        var chunked;
+
+        function setResumable(isChunked) {
+            chunked = isChunked;
+        }
+
+        function renderFrame() {
+            contentDiv = $("#uploader-frame");
+            file = context["file"];
+            //var text = JSON.stringify(context);
+            var text = "file: " + file.name;
+            text += "<br/>size:" + file.size + " bytes";
+            contentDiv.html(text);
+            statusDiv = $("#upload-status");
+            console.log("render frame log: " + text);
+        }
+
+        function initUpload() {
+            var name = context["file"].name;
+            var encodedName = encodeURI(name);
+            var uri = "https://www.googleapis.com/upload/storage/v1/b/content-uploader/o?uploadType=resumable&name="+encodedName;
+            var headers = {
+                "X-Upload-Content-Type": file.type,
+                "X-Upload-Content-Length": file.size,
+                "Authorization" : "Bearer " + context["accessToken"] //accessToken
+            };
+
+            doFilePost(uri, headers, doUpload, file);
+        }
+
+        function doFilePost(url, headers, onSuccess, fileRef) {
+            $.ajax({
+                url: url,
+                type: "POST",
+                headers: headers,
+                success: function (data, textStatus, request) {
+                    onSuccess(data, request, fileRef);
+                },
+                error: function (data) {
+                    alert("error")
+                }
+            });
+        }
+
+        function doUpload(data, request, fileRef) {
+            var resumableUri = request.getResponseHeader("Location");
+            console.log("resumable Uri: " + resumableUri);
+
+            var name = fileRef.name;
+            var size = fileRef.size;
+            var start = 0;
+            var stop = CHUNK_SIZE > size ? size : CHUNK_SIZE;
+
+            var headers = {
+                "Content-Type": fileRef.type
+            };
+
+            startTime = new Date();
+            console.log(">>>> start time: " + startTime.getTime());
+
+            if (chunked) {
+                if (start === 0 && stop === size) {
+                    doChunkPut(resumableUri, headers, fileRef, start, stop, false);
+                } else {
+                    headers["Content-Range"] = "bytes " + start + "-" + (stop-1) + "/" + size;
+                    doChunkPut(resumableUri, headers, fileRef, start, stop, true);
+                }
+            }
+            else {
+                doSinglePut(resumableUri, headers, fileRef);
+            }
+
+        }
+
+        async function doSinglePut(url, headers, fileRef) {
+            var req = new XMLHttpRequest();
+            req.onload = function (ev) {
+                switch (req.status) {
+                    case 200: {
+                        endTime = new Date();
+                        console.log(">>>> end time: " + endTime.getTime());
+                        var mbps = (8 * fileRef.size) / ((endTime.getTime() - startTime.getTime()) / 1000) / (1000 * 1000);
+                        var statusText = "[" + fileRef.name + "] size: " + fileRef.size + " time: " + (endTime.getTime() - startTime.getTime()) + " millis, avg mbps: " + mbps;
+                        console.log(">>>> " + statusText);
+                        console.log("upload complete: " + JSON.stringify(headers));
+                        statusDiv.text(statusText);
+                        break;
+                    }
+                }
+            };
+            req.upload.onprogress = function (ev) {
+                var percentComplete = (ev.loaded / ev.total) * 100;
+                statusDiv.text(">> progress: " + ev.loaded +"/" + ev.total + " ( "+percentComplete.toLocaleString() +"%)");
+            };
+
+            req.open("PUT", url, true);
+            for (var key in headers) {
+                req.setRequestHeader(key, headers[key]);
+            }
+            req.send(fileRef);
+
+        }
+
+        var prevLoad = 0;
+        var prevEvLoad = 0;
+        async function doChunkPut(url, headers, fileRef, start, stop, isChunked) {
+            var req = new XMLHttpRequest();
+            req.onload = function (ev) {
+                switch (req.status) {
+                    case 200: {
+                        endTime = new Date();
+                        console.log(">>>> end time: " + endTime.getTime());
+                        var mbps = (8 * fileRef.size) / ((endTime.getTime() - startTime.getTime())/1000) / (1000 * 1000) ;
+                        var statusText = "["+fileRef.name+"] size: "+fileRef.size+" time: " + (endTime.getTime() - startTime.getTime()) + " millis, avg mbps: " + mbps.toPrecision(2);
+                        console.log(">>>> " + statusText);
+                        console.log("upload complete: " + JSON.stringify(headers));
+                        statusDiv.text(statusText);
+                        break;
+                    }
+                    case 308: {
+                        var range = req.getResponseHeader("Range");
+                        var sent = Number(range.substr((range.lastIndexOf("-")+1)));
+                        var start = sent + 1;
+                        var stop = (start + CHUNK_SIZE > fileRef.size)? fileRef.size : start + CHUNK_SIZE;
+                        headers["Content-Range"] = "bytes " + start + "-" + (stop-1) + "/" + fileRef.size;
+                        doChunkPut(url, headers, fileRef, start, stop, isChunked);
+                        var pctComplete = (sent / fileRef.size) * 100;
+                        statusDiv.text(">> progress: " + sent + "/" + fileRef.size + " ( " + pctComplete.toLocaleString() + "%)");
+                        prevEvLoad = 0;
+                        break;
+                    }
+                    case 408:
+                    case 500:
+                    case 502:
+                    case 503:
+                    case 504: {
+                        if (iter < 10) {
+                            console.log("retrying for code: " + req.status);
+                            doChunkPut(url, headers, fileRef, iter++);
+                        } else {
+                            console.log("retries exceeded for code: " + req.status + " with status: [" + req.statusText + "] headers: " + JSON.stringify(headers));
+                        }
+                        break;
+                    }
+                    default: {
+                        console.log("unknown error: upload failed with status: " + req.status + " and text: " + req.statusText + " headers: " + JSON.stringify(headers));
+                        break;
+                    }
+                }
+            };
+            req.onerror = function (ev) {
+                alert("error");
+            };
+            req.upload.onprogress = function (ev) {
+                prevLoad += (ev.loaded - prevEvLoad);
+                prevEvLoad = ev.loaded;
+                var percentComplete = (prevLoad / fileRef.size) * 100;
+                statusDiv.text(">> progress: " + prevLoad +"/" + fileRef.size + " ( "+percentComplete.toLocaleString() +"%)");
+            };
+            req.open("PUT", url, true);
+            for (var key in headers) {
+                req.setRequestHeader(key, headers[key]);
+            }
+            req.send(fileRef.slice(start, stop));
+        }
+
+
+    </script>
+</head>
+
+<body>
+    <div id="uploader-frame">
+    </div>
+    <div id="upload-status"></div>
+</body>
+
+</html>

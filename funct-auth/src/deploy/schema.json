@@ -1,0 +1,98 @@
+[
+  {
+    "description": "",
+    "name": "guid",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "description": "",
+    "name": "type",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "timestamp",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  },
+  {
+    "description": "",
+    "name": "index",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "username",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "status",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "event",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "blobId",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "startTime",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "endTime",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "fileName",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "size",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "mediaId",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "mbps",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "timeTaken",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "description": "",
+    "name": "comment",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  }
+]
