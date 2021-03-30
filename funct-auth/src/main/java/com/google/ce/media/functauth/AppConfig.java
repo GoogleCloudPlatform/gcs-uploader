@@ -18,33 +18,25 @@ package com.google.ce.media.functauth;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.gax.core.CredentialsProvider;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import com.google.gson.Gson;
-import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Collections;
+import javax.annotation.PostConstruct;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 /**
  */
 @Component
 public class AppConfig {
   private final EnvConfig envConfig;
-  private final GcpProjectIdProvider projectIdProvider;
-  private final CredentialsProvider credentialsProvider;
 
-  public AppConfig(EnvConfig envConfig, GcpProjectIdProvider projectIdProvider, CredentialsProvider credentialsProvider) {
+  public AppConfig(EnvConfig envConfig) {
     this.envConfig = envConfig;
-    this.projectIdProvider = projectIdProvider;
-    this.credentialsProvider = credentialsProvider;
   }
 
   @PostConstruct
@@ -53,14 +45,13 @@ public class AppConfig {
 
   @Bean
   public Storage getStorage() throws IOException {
-//    return StorageOptions.newBuilder().setCredentials(credentialsProvider.getCredentials()).build().getService();
     return StorageOptions.getDefaultInstance().getService();
   }
 
   @Bean
   public GoogleIdTokenVerifier getVerifier() {
     return new GoogleIdTokenVerifier.Builder(new NetHttpTransport.Builder().build(),
-                                             JacksonFactory.getDefaultInstance())
+                                             GsonFactory.getDefaultInstance())
             .setAudience(Collections.singletonList(envConfig.getClientId()))
             .build();
   }

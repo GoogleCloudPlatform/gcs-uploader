@@ -20,7 +20,6 @@ package com.google.ce.media.functanalytics;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.google.common.base.Strings;
-import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class StoragePublisher {
-  private final GcpProjectIdProvider projectIdProvider;
   private final EnvConfig envConfig;
   private final boolean isPublishing;
 
@@ -38,8 +36,7 @@ public class StoragePublisher {
   private final Storage storage;
 
 
-  public StoragePublisher(GcpProjectIdProvider projectIdProvider, EnvConfig envConfig) {
-    this.projectIdProvider = projectIdProvider;
+  public StoragePublisher(EnvConfig envConfig) {
     this.envConfig = envConfig;
 
     this.bucket = envConfig.getUploadNotificationBucket();

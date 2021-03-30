@@ -17,6 +17,8 @@
 
 package com.google.ce.media.functanalytics;
 
+import com.google.cloud.ServiceOptions;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -44,6 +46,13 @@ public class EnvConfig {
   @Value("${ENABLE_BIG_QUERY:true}")
   private boolean enableBigQuery;
 
+  private String projectId;
+
+  @PostConstruct
+  private void init() {
+    projectId = ServiceOptions.getDefaultProjectId();
+  }
+
   public String getUploadNotificationTopic() {
     return uploadNotificationTopic;
   }
@@ -66,5 +75,9 @@ public class EnvConfig {
 
   public String getUploadNotificationFolder() {
     return uploadNotificationFolder;
+  }
+
+  public String getProjectId() {
+    return projectId;
   }
 }

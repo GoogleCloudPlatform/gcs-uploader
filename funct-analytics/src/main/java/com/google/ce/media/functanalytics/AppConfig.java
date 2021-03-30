@@ -23,7 +23,6 @@ import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -33,12 +32,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppConfig {
 
-  private final GcpProjectIdProvider projectIdProvider;
   private final EnvConfig envConfig;
 
-  public AppConfig(GcpProjectIdProvider projectIdProvider,
-                   EnvConfig envConfig) {
-    this.projectIdProvider = projectIdProvider;
+  public AppConfig(EnvConfig envConfig) {
     this.envConfig = envConfig;
   }
 

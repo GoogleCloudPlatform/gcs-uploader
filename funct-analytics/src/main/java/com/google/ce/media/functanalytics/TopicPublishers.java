@@ -20,25 +20,21 @@ package com.google.ce.media.functanalytics;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.TopicName;
-import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import java.io.IOException;
+import javax.annotation.PostConstruct;
+import org.springframework.stereotype.Component;
 
 /**
  * Created in gcs-uploader on 2/11/20.
  */
 @Component
 public class TopicPublishers {
-  private final GcpProjectIdProvider projectIdProvider;
   private final EnvConfig envConfig;
   private final boolean isPublishing;
 
   private Publisher uploadNotificationPublisher;
 
-  public TopicPublishers(GcpProjectIdProvider projectIdProvider, EnvConfig envConfig) {
-    this.projectIdProvider = projectIdProvider;
+  public TopicPublishers(EnvConfig envConfig) {
     this.envConfig = envConfig;
     this.isPublishing = envConfig.getUploadNotificationTopic() != null;
   }
@@ -46,7 +42,7 @@ public class TopicPublishers {
   @PostConstruct
   private void init() throws IOException {
     if(isPublishing) {
-      TopicName uploadTopic = ProjectTopicName.of(projectIdProvider.getProjectId(),
+      TopicName uploadTopic = ProjectTopicName.of(envConfig.getProjectId(),
                                                   envConfig.getUploadNotificationTopic());
       uploadNotificationPublisher = Publisher.newBuilder(uploadTopic).build();
     }

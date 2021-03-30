@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.0.RELEASE</version>
+    <version>2.4.4</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>com.google.ce.media</groupId>
@@ -32,18 +32,12 @@
 
   <properties>
     <java.version>1.8</java.version>
-    <spring-cloud.version>Hoxton.RC1</spring-cloud.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-gcp-starter</artifactId>
     </dependency>
 
     <dependency>
@@ -54,7 +48,7 @@
     <dependency>
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client</artifactId>
-      <version>1.30.2</version>
+      <version>1.31.2</version>
     </dependency>
 
     <dependency>
@@ -91,17 +85,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>${spring-cloud.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
-        <version>3.4.0</version>
+        <version>19.2.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -113,40 +99,10 @@
     <finalName>cu</finalName>
     <plugins>
       <plugin>
-        <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-        <version>1.8.0</version>
-        <configuration>
-          <to>
-            <image>gcr.io/media-dial-tone/content-uploader</image>
-            <credHelper>gcr</credHelper>
-          </to>
-          <container>
-            <ports>
-              <port>8080</port>
-            </ports>
-            <!--<useCurrentTimestamp>true</useCurrentTimestamp>-->
-            <mainClass>com.google.ce.media.contentuploader.ContentUploaderApplication</mainClass>
-            <!--<environment>-->
-            <!--<server.port>80</server.port>-->
-            <!--</environment>-->
-          </container>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <id>spring-milestones</id>
-      <name>Spring Milestones</name>
-      <url>https://repo.spring.io/milestone</url>
-    </repository>
-  </repositories>
 
 </project>
