@@ -87,6 +87,7 @@ public class UploadTaskPool {
 
   private final class UploaderRunnable implements Runnable {
     private final BlockingQueue<Runnable> queue;
+    private final Object LOCK = new Object();
 
     private UploaderRunnable(BlockingQueue<Runnable> queue) {
       this.queue = queue;
@@ -96,12 +97,31 @@ public class UploadTaskPool {
     public void run() {
       while (true) {
         try {
+          int runningCount = 0;
+          boolean ok = false;
           Runnable current = queue.take();
-          current.run();
+          while (runningCount < 3 && !ok) {
+            try {
+              runningCount++;
+              ok = runCurrent(current);
+            } catch (Exception e) {
+              e.printStackTrace();
+              synchronized (LOCK) {
+                System.out.println(">>> WAITING due to exception: " + e.getMessage());
+                LOCK.wait(runningCount * 1000L);
+                System.out.println(">>> RESUMING from exception: " + e.getMessage());
+              }
+            }
+          }
         } catch (Exception e) {
           e.printStackTrace();
         }
       }
+    }
+
+    private boolean runCurrent(Runnable current) throws Exception {
+      current.run();
+      return true;
     }
   }
 
