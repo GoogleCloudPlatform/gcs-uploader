@@ -67,6 +67,8 @@ public class BlobUploadTask implements Runnable {
     boolean hasException = false;
     Exception exception = null;
     try {
+      // defensively rewind the buffer just in case this is a re-run due to error
+      buffer.rewind();
       Blob blob = storage.create(tasklet.getBlobInfo());
       tasklet.setStatus(TaskStatus.RUNNING);
 
