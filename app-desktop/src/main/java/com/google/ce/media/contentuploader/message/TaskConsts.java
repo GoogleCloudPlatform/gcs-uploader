@@ -24,7 +24,7 @@ import com.google.common.hash.Hashing;
  * Created in gcs-uploader on 2020-01-25.
  */
 public class TaskConsts {
-  public static final long COMPOSITE_CHUNK_SIZE = 1024*1024*48; //48 mb
+  public static final long COMPOSITE_CHUNK_SIZE = 1024*1024*128; //128 mb
   public static final long COMPOSITE_LIMIT = 1024L * 1024L * 256L; // 256mb
 
   public static final HashFunction md5Digest = Hashing.md5();

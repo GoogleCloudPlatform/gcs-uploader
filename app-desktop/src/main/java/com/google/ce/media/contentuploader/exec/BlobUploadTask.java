@@ -47,6 +47,10 @@ public class BlobUploadTask implements Runnable {
     this.buffer = buffer;
   }
 
+  public TaskInfo getTaskInfo() {
+    return taskInfo;
+  }
+
   @Override
   public void run() {
     if(taskInfo.isCancelling()) {

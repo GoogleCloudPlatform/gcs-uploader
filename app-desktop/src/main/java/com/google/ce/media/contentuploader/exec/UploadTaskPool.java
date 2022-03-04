@@ -25,10 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * Created in gcs-uploader on 2020-01-10.
@@ -37,11 +34,13 @@ import java.util.concurrent.Executors;
 public class UploadTaskPool {
   private final EnvConfig envConfig;
 
+  private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
   private final ExecutorService executorService;
 
   private final ExecutorService stitcherService = Executors.newFixedThreadPool(5);
 
-  private final BlockingQueue<Runnable> blockingQueue;
+  private final BlockingQueue<BlobUploadTask> blockingQueue;
 
   private final List<Thread> uploaderThreads;
 
@@ -54,7 +53,7 @@ public class UploadTaskPool {
     this.envConfig = envConfig;
 
     executorService = Executors.newFixedThreadPool(envConfig.getTaskWorkerPoolSize());
-    blockingQueue = new ArrayBlockingQueue<>(1);
+    blockingQueue = new ArrayBlockingQueue<>(5);
 //    blockingQueue = new ArrayBlockingQueue<>(envConfig.getUploadQueueSize());
     uploaderThreads = new ArrayList<>(envConfig.getUploadWorkerPoolSize());
 
@@ -81,15 +80,23 @@ public class UploadTaskPool {
     stitcherService.submit(stitchTask);
   }
 
+  public void enqueue(CleanupTask cleanupTask) {
+    stitcherService.submit(cleanupTask);
+  }
+
   public void enqueue(BlobUploadTask blobUploadTask) throws InterruptedException {
     blockingQueue.put(blobUploadTask);
   }
 
+  public void scheduleAtFixedRate(Runnable task, long periodMillis) {
+    scheduledExecutorService.scheduleAtFixedRate(task, 5L, periodMillis, TimeUnit.MILLISECONDS);
+  }
+
   private final class UploaderRunnable implements Runnable {
-    private final BlockingQueue<Runnable> queue;
+    private final BlockingQueue<BlobUploadTask> queue;
     private final Object LOCK = new Object();
 
-    private UploaderRunnable(BlockingQueue<Runnable> queue) {
+    private UploaderRunnable(BlockingQueue<BlobUploadTask> queue) {
       this.queue = queue;
     }
 
@@ -99,7 +106,7 @@ public class UploadTaskPool {
         try {
           int runningCount = 0;
           boolean ok = false;
-          Runnable current = queue.take();
+          BlobUploadTask current = queue.take();
           while (runningCount < 3 && !ok) {
             try {
               runningCount++;
@@ -107,9 +114,9 @@ public class UploadTaskPool {
             } catch (Exception e) {
               e.printStackTrace();
               synchronized (LOCK) {
-                System.out.println(">>> WAITING due to exception: " + e.getMessage());
+                System.out.println(">>> ["+current.getTaskInfo().getName()+"] WAITING due to exception: " + e.getMessage());
                 LOCK.wait(runningCount * 1000L);
-                System.out.println(">>> RESUMING from exception: " + e.getMessage());
+                System.out.println(">>> ["+current.getTaskInfo().getName()+"] RESUMING from exception: " + e.getMessage());
               }
             }
           }
@@ -119,7 +126,7 @@ public class UploadTaskPool {
       }
     }
 
-    private boolean runCurrent(Runnable current) throws Exception {
+    private boolean runCurrent(BlobUploadTask current) throws Exception {
       current.run();
       return true;
     }

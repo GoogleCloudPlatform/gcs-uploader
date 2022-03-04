@@ -71,7 +71,7 @@ public class StitchTask implements Runnable {
       }
       doStitch(blobInfos, taskInfo.getBlobInfo(), 0);
     }
-    doCleanup(blobInfos);
+    taskInfo.getUploadTaskPool().enqueue(new CleanupTask(taskInfo, blobInfos));
 
     Long endTime = System.currentTimeMillis();
     AnalyticsMessage m2 = AnalyticsMessage.from(taskInfo,
@@ -93,13 +93,6 @@ public class StitchTask implements Runnable {
     m_complete.setTimeTaken(time);
     m_complete.setMbps(taskInfo.getMbps());
     AnalyticsService.getInstance().enqueue(taskInfo.getAuthConfig().getAuthInfo(), m_complete);
-  }
-
-  private void doCleanup(List<BlobInfo> blobInfos) {
-    List<BlobId> deletionIds = blobInfos.stream().map(BlobInfo::getBlobId).collect(Collectors.toCollection(LinkedList::new));
-    secondaryBlobs.stream().map(BlobInfo::getBlobId).forEach(deletionIds::add);
-    storage.delete(deletionIds);
-    System.out.println(">> deleted ids: " + deletionIds.size());
   }
 
   private void doStitch(List<BlobInfo> blobInfos, BlobInfo finalBlobName, int generation) {

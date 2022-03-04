@@ -291,4 +291,8 @@ public class TaskInfo {
   public void setCancelling(boolean cancelling) {
     this.cancelling = cancelling;
   }
+
+  public UploadTaskPool getUploadTaskPool() {
+    return uploadTaskPool;
+  }
 }

@@ -19,8 +19,10 @@ package com.google.ce.media.contentuploader;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class ContentUploaderApplication {
 
   public static void main(String[] args) {

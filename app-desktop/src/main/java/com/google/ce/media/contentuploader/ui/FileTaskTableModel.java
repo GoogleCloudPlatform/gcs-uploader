@@ -18,6 +18,7 @@
 package com.google.ce.media.contentuploader.ui;
 
 import com.google.ce.media.contentuploader.config.AuthConfig;
+import com.google.ce.media.contentuploader.exec.MonitorTask;
 import com.google.ce.media.contentuploader.exec.UploadTaskPool;
 import com.google.ce.media.contentuploader.message.TaskInfo;
 import com.google.ce.media.contentuploader.message.TaskInfoMessage;
@@ -63,6 +64,9 @@ public class FileTaskTableModel extends AbstractTableModel {
     this.uploadTaskPool = uploadTaskPool;
     this.authConfig = authConfig;
     this.applicationEventPublisher = applicationEventPublisher;
+
+    // TODO: 3/4/22 will incorporate monitor if sharding is not sufficient
+//    this.uploadTaskPool.scheduleAtFixedRate(new MonitorTask(taskList), 60000L);
   }
 
 

@@ -26,6 +26,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created in gcs-uploader on 2020-01-23.
@@ -80,8 +82,13 @@ public class CompositeUploadTask implements Runnable {
 //        md5HasherTotal.putBytes(buffer);
 //        crcHasherTotal.putBytes(buffer);
         crc32C.update(buffer, 0, buffer.length);
+        Map<String,String> metadata = new HashMap<>();
+        metadata.put("x-uploader-file-category", "temp");
+        String shard = "" + (System.currentTimeMillis() % 100L);
         BlobInfo blobInfo = BlobInfo.newBuilder(taskInfo.getBlobInfo().getBucket(),
-                                                taskInfo.getCorrelationId() + index).build();
+                                                shard + "-" + taskInfo.getCorrelationId() + index)
+                .setMetadata(metadata)
+                .build();
         Tasklet tasklet = new Tasklet(taskInfo.getId(), blobInfo, index, buffer.length);
         taskInfo.addTasklet(tasklet);
         BlobUploadTask blobUploadTask = new BlobUploadTask(taskInfo,
