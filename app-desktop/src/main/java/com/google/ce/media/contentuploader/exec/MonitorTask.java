@@ -69,12 +69,29 @@ public class MonitorTask implements Runnable {
         for (Tasklet tasklet : tasklets) {
             isOk = isOk && tasklet.getStatus() == TaskStatus.FINISHED;
         }
-        System.out.println("all tasklets for ["+taskInfo.getName()+"] register finished: " + isOk);
+        System.out.println(">> >> all tasklets for ["+taskInfo.getName()+"] register finished: " + isOk);
+        long uploaded = taskInfo.getUploaded();
+        long size = taskInfo.getSize();
+
+        System.out.println(">> >> uploaded["+uploaded+"] of size["+size+"] for ["+taskInfo.getName()+"]");
+
+        if (isOk) {
+            if (uploaded == size) {
+                System.out.println(">> >> forcing update in main taskinfo[" + taskInfo.getName() + "]");
+                taskInfo.updateUploaded(0L);
+            }
+            else {
+                System.out.println(">> >> ERROR!! upload to size mismatch for [" + taskInfo.getName() + "]");
+            }
+        }
+
+/*
         StitchStatus stitchStatus = taskInfo.getStitchStatus();
         boolean isOkStitch = stitchStatus == StitchStatus.PREPARING || stitchStatus == StitchStatus.STARTED;
         if(isOk && !isOkStitch && taskInfo.getEndTime() == 0L) {
             System.out.println(">> >> monitor triggering stitch for: " + taskInfo.getName());
             uploadTaskPool.enqueue(new StitchTask(true, taskInfo));
         }
+*/
     }
 }

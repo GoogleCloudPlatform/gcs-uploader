@@ -202,9 +202,9 @@ public class TaskInfo {
       this.uploaded += uploaded;
       long time = System.currentTimeMillis() - startTime;
       mbps = (this.uploaded * 8.0) / (time == 0 ? 1 : time) / 1000.0;
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
+//      new Thread(new Runnable() {
+//        @Override
+//        public void run() {
           if(TaskInfo.this.uploaded == size) {
             TaskInfo.this.status = TaskStatus.FINISHED;
           }
@@ -227,9 +227,13 @@ public class TaskInfo {
             AnalyticsService.getInstance().enqueue(TaskInfo.this.getAuthConfig().getAuthInfo(), m_complete);
 
           }
-        }
-      }).start();
+//        }
+//      }).start();
     }
+  }
+
+  public long getUploaded() {
+    return uploaded;
   }
 
   public AuthConfig getAuthConfig() {
