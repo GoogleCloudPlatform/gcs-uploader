@@ -67,7 +67,7 @@ public class CompositeUploadTask implements Runnable {
       int index = 0;
       while (read < taskInfo.getSize() && !taskInfo.isCancelling()) {
         byte[] buffer;
-        if(read + TaskConsts.COMPOSITE_CHUNK_SIZE < taskInfo.getSize()) {
+        if(read + TaskConsts.COMPOSITE_CHUNK_SIZE <= taskInfo.getSize()) {
           buffer = new byte[(int) TaskConsts.COMPOSITE_CHUNK_SIZE];
         }
         else {

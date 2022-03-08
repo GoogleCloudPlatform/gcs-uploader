@@ -65,8 +65,7 @@ public class FileTaskTableModel extends AbstractTableModel {
     this.authConfig = authConfig;
     this.applicationEventPublisher = applicationEventPublisher;
 
-    // TODO: 3/4/22 will incorporate monitor if sharding is not sufficient
-//    this.uploadTaskPool.scheduleAtFixedRate(new MonitorTask(taskList), 60000L);
+    this.uploadTaskPool.scheduleAtFixedRate(new MonitorTask(taskList, this.uploadTaskPool), 300000L);
   }
 
 

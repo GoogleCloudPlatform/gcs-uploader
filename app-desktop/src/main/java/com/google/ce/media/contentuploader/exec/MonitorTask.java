@@ -17,21 +17,26 @@
 
 package com.google.ce.media.contentuploader.exec;
 
+import com.google.ce.media.contentuploader.message.StitchStatus;
 import com.google.ce.media.contentuploader.message.TaskInfo;
 import com.google.ce.media.contentuploader.message.TaskStatus;
 import com.google.ce.media.contentuploader.message.Tasklet;
 
+import java.util.Date;
 import java.util.List;
 
 public class MonitorTask implements Runnable {
     private final List<TaskInfo> modelTaskInfos;
+    private final UploadTaskPool uploadTaskPool;
 
-    public MonitorTask(List<TaskInfo> modelTaskInfos) {
+    public MonitorTask(List<TaskInfo> modelTaskInfos, UploadTaskPool uploadTaskPool) {
         this.modelTaskInfos = modelTaskInfos;
+        this.uploadTaskPool = uploadTaskPool;
     }
 
     @Override
     public void run() {
+        System.out.println(">> >> running monitor task at " + (new Date()));
         try {
             for (TaskInfo taskInfo : modelTaskInfos) {
                 TaskStatus taskStatus = taskInfo.getStatus();
@@ -41,7 +46,9 @@ public class MonitorTask implements Runnable {
                     case QUEUED:
                         break;
                     case RUNNING:
-                        checkRunningTask(taskInfo);
+                        if(!taskInfo.isCancelling()) {
+                            checkRunningTask(taskInfo);
+                        }
                         break;
                     case FINISHED:
                         break;
@@ -56,7 +63,18 @@ public class MonitorTask implements Runnable {
     }
 
     private void checkRunningTask(TaskInfo taskInfo) {
+        System.out.println(">> >> monitor checking running task: " + taskInfo.getName());
         List<Tasklet> tasklets = taskInfo.getTasklets();
-
+        boolean isOk = true;
+        for (Tasklet tasklet : tasklets) {
+            isOk = isOk && tasklet.getStatus() == TaskStatus.FINISHED;
+        }
+        System.out.println("all tasklets for ["+taskInfo.getName()+"] register finished: " + isOk);
+        StitchStatus stitchStatus = taskInfo.getStitchStatus();
+        boolean isOkStitch = stitchStatus == StitchStatus.PREPARING || stitchStatus == StitchStatus.STARTED;
+        if(isOk && !isOkStitch && taskInfo.getEndTime() == 0L) {
+            System.out.println(">> >> monitor triggering stitch for: " + taskInfo.getName());
+            uploadTaskPool.enqueue(new StitchTask(true, taskInfo));
+        }
     }
 }
