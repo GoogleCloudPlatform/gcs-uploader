@@ -47,7 +47,7 @@ public class TaskInfo {
   private StitchStatus stitchStatus;
   private Blob compositeBlob;
   private long uploaded = 0L;
-  private final Object LOCK = new Object();
+  public final Object LOCK = new Object();
   private BlobInfo blobInfo;
   private final boolean isComposite;
   private final String correlationId;

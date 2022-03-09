@@ -78,7 +78,13 @@ public class MonitorTask implements Runnable {
         if (isOk) {
             if (uploaded == size) {
                 System.out.println(">> >> forcing update in main taskinfo[" + taskInfo.getName() + "]");
-                taskInfo.updateUploaded(0L);
+                if(taskInfo.getStatus() != TaskStatus.FINISHED) {
+                    synchronized (taskInfo.LOCK) {
+                        if (taskInfo.getStatus() != TaskStatus.FINISHED) {
+                            taskInfo.updateUploaded(0L);
+                        }
+                    }
+                }
             }
             else {
                 System.out.println(">> >> ERROR!! upload to size mismatch for [" + taskInfo.getName() + "]");
