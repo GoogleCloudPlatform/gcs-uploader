@@ -31,7 +31,7 @@
   <description>content uploader sample app to test fast GCS uploads from browser</description>
 
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>11</java.version>
   </properties>
 
   <dependencies>

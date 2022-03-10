@@ -338,6 +338,7 @@ public class UiMasterController implements AuthConfig.AuthConfigListener, Applic
           metadata.put("x-uploader-media-id", taskInfo.getMediaId());
           metadata.put("x-uploader-email", authConfig.getAuthInfo().getEmail());
           metadata.put("x-uploader-guid", taskInfo.getId());
+          metadata.put("x-uploader-user-agent", "gcs-uploader/1.0.20220310");
           BlobInfo blobInfo = Blob.newBuilder(selectedDestination.getGcsBucket(),
                                               blobName).setMetadata(metadata).build();
           taskInfo.setBlobInfo(blobInfo);
