@@ -28,6 +28,7 @@ public class Tasklet {
   private final int index;
   private TaskStatus status;
   private final int size;
+  private int errorCount = 0;
 
 
   public Tasklet(String taskGuid, BlobInfo blobInfo, int index, int size) {
@@ -60,5 +61,13 @@ public class Tasklet {
 
   public void setStatus(TaskStatus status) {
     this.status = status;
+  }
+
+  public int getErrorCount() {
+    return errorCount;
+  }
+
+  public void incrementErrorCount() {
+    errorCount++;
   }
 }

@@ -73,20 +73,24 @@ public class CompositeUploadTask implements Runnable {
         else {
           buffer = new byte[(int) (taskInfo.getSize() - read)];
         }
+        count = fileInputStream.read(buffer);
+        read += count;
+/*
         int segRead = 0;
         while (segRead < buffer.length) {
           count = fileInputStream.read(buffer, segRead, buffer.length-segRead);
           read += count;
           segRead += count;
         }
+*/
 //        md5HasherTotal.putBytes(buffer);
 //        crcHasherTotal.putBytes(buffer);
         crc32C.update(buffer, 0, buffer.length);
         Map<String,String> metadata = new HashMap<>();
         metadata.put("x-uploader-file-category", "temp");
-        String shard = "" + (System.currentTimeMillis() % 100L);
+//        String shard = "" + (System.currentTimeMillis() % 100L);
         BlobInfo blobInfo = BlobInfo.newBuilder(taskInfo.getBlobInfo().getBucket(),
-                                                shard + "-" + taskInfo.getCorrelationId() + index)
+                                                taskInfo.getCorrelationId() + index)
                 .setMetadata(metadata)
                 .build();
         Tasklet tasklet = new Tasklet(taskInfo.getId(), blobInfo, index, buffer.length);

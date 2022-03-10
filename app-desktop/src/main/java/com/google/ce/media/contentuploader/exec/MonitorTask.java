@@ -66,22 +66,23 @@ public class MonitorTask implements Runnable {
         System.out.println(">> >> monitor checking running task: " + taskInfo.getName());
         List<Tasklet> tasklets = taskInfo.getTasklets();
         boolean isOk = true;
+        long taskletByteCount = 0;
         for (Tasklet tasklet : tasklets) {
             isOk = isOk && tasklet.getStatus() == TaskStatus.FINISHED;
+            taskletByteCount += tasklet.getSize();
         }
         System.out.println(">> >> all tasklets for ["+taskInfo.getName()+"] register finished: " + isOk);
-        long uploaded = taskInfo.getUploaded();
         long size = taskInfo.getSize();
 
-        System.out.println(">> >> uploaded["+uploaded+"] of size["+size+"] for ["+taskInfo.getName()+"]");
+        System.out.println(">> >> ["+tasklets.size()+"]tasklets uploaded ["+taskletByteCount+"] of size["+size+"] for ["+taskInfo.getName()+"]");
 
         if (isOk) {
-            if (uploaded == size) {
+            if (taskletByteCount == size) {
                 System.out.println(">> >> forcing update in main taskinfo[" + taskInfo.getName() + "]");
                 if(taskInfo.getStatus() != TaskStatus.FINISHED) {
                     synchronized (taskInfo.LOCK) {
                         if (taskInfo.getStatus() != TaskStatus.FINISHED) {
-                            taskInfo.updateUploaded(0L);
+                            taskInfo.forceCheck();
                         }
                     }
                 }

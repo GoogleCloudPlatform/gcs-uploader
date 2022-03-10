@@ -51,6 +51,10 @@ public class BlobUploadTask implements Runnable {
     return taskInfo;
   }
 
+  public Tasklet getTasklet() {
+    return tasklet;
+  }
+
   @Override
   public void run() {
     if(taskInfo.isCancelling()) {
@@ -70,6 +74,7 @@ public class BlobUploadTask implements Runnable {
     System.out.println(">> >> writing blobInfo.getName() = " + tasklet.getBlobInfo().getName());
     boolean hasException = false;
     Exception exception = null;
+    long uploaded = 0;
     try {
       // defensively rewind the buffer just in case this is a re-run due to error
       buffer.rewind();
@@ -99,7 +104,7 @@ public class BlobUploadTask implements Runnable {
           // imporant to set this BEFORE updating the last count
           tasklet.setStatus(TaskStatus.FINISHED);
         }
-        taskInfo.updateUploaded(count);
+        uploaded += count;
       }
 
 
@@ -138,8 +143,10 @@ public class BlobUploadTask implements Runnable {
         m2.setEndTime(DateUtils.time(endTime));
         m2.setTimeTaken(endTime - startTime);
         AnalyticsService.getInstance().enqueue(taskInfo.getAuthConfig().getAuthInfo(), m2);
+        throw new RuntimeException(exception);
       }
       else {
+        taskInfo.updateUploaded(uploaded);
         double den = (endTime - startTime)*1.0 / 1000d;
         double mibs = den == 0 ? 0 : ((tasklet.getSize() * 8d) / den) / (1024d * 1024d);
 

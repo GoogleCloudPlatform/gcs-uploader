@@ -205,32 +205,50 @@ public class TaskInfo {
 //      new Thread(new Runnable() {
 //        @Override
 //        public void run() {
-          if(TaskInfo.this.uploaded == size) {
-            TaskInfo.this.status = TaskStatus.FINISHED;
-          }
-          if(status == TaskStatus.FINISHED && isComposite) {
-            setEndTime(System.currentTimeMillis());
-            boolean ok = tasklets.stream().map(tasklet -> tasklet.getStatus() == TaskStatus.FINISHED).reduce(true, (a, b) -> a && b);
-            if(ok) {
-              mbps = (size * 8.0) / (endTime - startTime) / 1000.0;
-            }
-            System.out.println("IS ALL OK> ["+getFile().getPath()+"] ok = " + ok);
-            uploadTaskPool.enqueue(new StitchTask(ok, TaskInfo.this));
-
-            AnalyticsMessage m_complete = AnalyticsMessage.from(TaskInfo.this,
-                                                                AnalyticsMessage.Event.COMPOSITE_FILE_END,
-                                                                "End Composite Upload of Segments");
-            m_complete.setStartTime(DateUtils.time(startTime));
-            m_complete.setEndTime(DateUtils.time(endTime));
-            m_complete.setTimeTaken(endTime - startTime);
-            m_complete.setMbps((int) mbps);
-            AnalyticsService.getInstance().enqueue(TaskInfo.this.getAuthConfig().getAuthInfo(), m_complete);
-
-          }
+      if(isComposite) {
+        if(TaskInfo.this.uploaded >= size) {
+          forceCheck();
+        }
+      }
+      else {
+        if(uploaded == size) {
+          TaskInfo.this.status = TaskStatus.FINISHED;
+          setEndTime(System.currentTimeMillis());
+        }
+      }
 //        }
 //      }).start();
     }
   }
+
+  public void forceCheck() {
+    if(status == TaskStatus.FINISHED) {
+      return;
+    }
+    boolean ok = true;
+    long taskletByteCount = 0;
+    for (Tasklet tasklet : tasklets) {
+      ok =  ok && (tasklet.getStatus() == TaskStatus.FINISHED);
+      taskletByteCount += tasklet.getSize();
+    }
+    if(ok && taskletByteCount == size) {
+      TaskInfo.this.status = TaskStatus.FINISHED;
+      setEndTime(System.currentTimeMillis());
+      mbps = (size * 8.0) / (endTime - startTime) / 1000.0;
+      System.out.println("IS ALL OK> ["+getFile().getPath()+"] ok = " + ok);
+      uploadTaskPool.enqueue(new StitchTask(ok, TaskInfo.this));
+
+      AnalyticsMessage m_complete = AnalyticsMessage.from(TaskInfo.this,
+              AnalyticsMessage.Event.COMPOSITE_FILE_END,
+              "End Composite Upload of Segments");
+      m_complete.setStartTime(DateUtils.time(startTime));
+      m_complete.setEndTime(DateUtils.time(endTime));
+      m_complete.setTimeTaken(endTime - startTime);
+      m_complete.setMbps((int) mbps);
+      AnalyticsService.getInstance().enqueue(TaskInfo.this.getAuthConfig().getAuthInfo(), m_complete);
+    }
+  }
+
 
   public long getUploaded() {
     return uploaded;

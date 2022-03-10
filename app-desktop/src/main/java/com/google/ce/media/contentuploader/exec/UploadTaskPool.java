@@ -112,6 +112,7 @@ public class UploadTaskPool {
               runningCount++;
               ok = runCurrent(current);
             } catch (Exception e) {
+              current.getTasklet().incrementErrorCount();
               e.printStackTrace();
               synchronized (LOCK) {
                 System.out.println(">>> ["+current.getTaskInfo().getName()+"] WAITING due to exception: " + e.getMessage());
