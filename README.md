@@ -18,6 +18,9 @@ Please read the [User Manual](UserManual.pdf) for detailed instructions on insta
 
 If you have a Google Cloud account team, you can contact them for further help.
 
+### Updates
+* last update fixed issues with the desktop app that hung on some uploads
+
 ### License
 
 gcs-uplaoder is released under the [Apache 2.0 license](LICENSE).
